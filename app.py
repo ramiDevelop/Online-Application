@@ -7,23 +7,18 @@ import streamlit as st
 import os
 from io import BytesIO
 
-# Custom CSS for better styling
+# **Custom Styling**
 st.markdown("""
     <style>
-        /* General styling */
         body {
             background-color: #f5f7fa;
         }
-        
-        /* Header Styling */
         .title {
             text-align: center;
             color: #2c3e50;
             font-size: 32px;
             font-weight: bold;
         }
-
-        /* Subheaders */
         .subheader {
             color: #34495e;
             font-size: 24px;
@@ -32,8 +27,6 @@ st.markdown("""
             border-bottom: 2px solid #2980b9;
             padding-bottom: 5px;
         }
-
-        /* Buttons */
         .stButton>button {
             background-color: #2980b9;
             color: white;
@@ -43,12 +36,9 @@ st.markdown("""
             border: none;
             transition: all 0.3s ease;
         }
-        
         .stButton>button:hover {
             background-color: #1c6ea4;
         }
-
-        /* Custom Dividers */
         .divider {
             border-top: 3px solid #2980b9;
             margin: 15px 0;
@@ -56,18 +46,21 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# SMTP Configuration for Zoho
-SMTP_SERVER = "smtp.zoho.com"
-SMTP_PORT = 465
-USE_SSL = True
-SENDER_EMAIL = "gm@fandhheatingandcooling.com"
-SENDER_PASSWORD = "Hahaadmin2023"
+# **Function to Send Email (Using Gmail SMTP)**
+def send_email(subject, body, recipient, attachments):
+    sender_email = "hahadigital2020@gmail.com"  # Your Gmail
+    recipient_email = recipient
 
-# Function to send the email with multiple attachments
-def send_email(subject, body, attachments):
+    # **Load App Password from secrets.toml**
+    try:
+        email_password = st.secrets["email"]["EMAIL_PASSWORD"]
+    except:
+        st.error("⚠️ Email password not found in secrets.toml. Please set it correctly.")
+        return
+
     msg = MIMEMultipart()
-    msg["From"] = SENDER_EMAIL
-    msg["To"] = "gm@fandhheatingandcooling.com"
+    msg["From"] = sender_email
+    msg["To"] = recipient_email
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "html"))
 
@@ -82,23 +75,18 @@ def send_email(subject, body, attachments):
             msg.attach(part)
 
     try:
-        if USE_SSL:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
-        else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-            server.starttls()
-
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
-        server.sendmail(SENDER_EMAIL, "gm@fandhheatingandcooling.com", msg.as_string())
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        server.login(sender_email, email_password)
+        server.sendmail(sender_email, recipient_email, msg.as_string())
         server.quit()
         st.success("✅ Your application has been submitted successfully!")
     except Exception as e:
         st.error(f"⚠️ Error sending email: {str(e)}")
 
-# Title
+# **Title**
 st.markdown('<h1 class="title">Hahas Heating and Cooling Employment Application</h1>', unsafe_allow_html=True)
 
-# Personal Information
+# **Personal Information**
 st.markdown('<div class="subheader">Personal Information</div>', unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
@@ -116,7 +104,7 @@ address = st.text_input("Address")
 
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-# Employment Details
+# **Employment Details**
 st.markdown('<div class="subheader">Employment Details</div>', unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
@@ -128,7 +116,7 @@ start_date = st.date_input("Start Date")
 
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-# Education
+# **Education**
 st.markdown('<div class="subheader">Education</div>', unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
@@ -138,7 +126,7 @@ with col2:
 
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-# Work Experience
+# **Work Experience**
 st.markdown('<div class="subheader">Work Experience (Last 2 Jobs)</div>', unsafe_allow_html=True)
 jobs = []
 for i in range(1, 3):
@@ -156,7 +144,7 @@ for i in range(1, 3):
 
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-# Banking Information
+# **Banking Information**
 st.markdown('<div class="subheader">Banking Information</div>', unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
@@ -170,36 +158,35 @@ with col2:
 
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-# File Uploads
+# **File Uploads**
 st.markdown('<div class="subheader">Upload Your Documents</div>', unsafe_allow_html=True)
 id_file = st.file_uploader("Upload ID", type=["pdf", "jpg", "png"])
 ssn_file = st.file_uploader("Upload Social Security Card", type=["pdf", "jpg", "png"])
 epa_osha_file = st.file_uploader("Upload EPA/OSHA Licenses", type=["pdf", "jpg", "png"])
 
-# Submit button
-if st.button("Submit"):
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+# **Pre-Built Email Selection (Like PO Generator)**
+st.markdown('<div class="subheader">Select Recipient</div>', unsafe_allow_html=True)
+email_recipient = st.selectbox(
+    "Send Application To:",
+    ["hahadigital2020@gmail.com", "hr@hahascompany.com", "admin@hahascompany.com"]
+)
+
+# **Submit Button**
+if st.button("Submit Application"):
     email_subject = f"{first_name} {last_name} Employment Application"
     email_body = f"""
     <html>
     <body>
         <h2>Employment Application</h2>
-        
-        <h3>Personal Information</h3>
         <p><strong>Name:</strong> {first_name} {last_name}</p>
         <p><strong>Email:</strong> {email}</p>
-        <p><strong>Address:</strong> {address}</p>
-
-        <h3>Employment Details</h3>
         <p><strong>Position Applied For:</strong> {position}</p>
         <p><strong>Desired Pay:</strong> {desired_pay}</p>
         <p><strong>Start Date:</strong> {start_date}</p>
-
-        <h3>Attached Documents:</h3>
-        <p><strong>ID File:</strong> {id_file.name if id_file else "No file uploaded."}</p>
-        <p><strong>Social Security Card:</strong> {ssn_file.name if ssn_file else "No file uploaded."}</p>
-        <p><strong>EPA/OSHA Licenses:</strong> {epa_osha_file.name if epa_osha_file else "No file uploaded."}</p>
     </body>
     </html>
     """
     attachments = [f for f in [id_file, ssn_file, epa_osha_file] if f is not None]
-    send_email(email_subject, email_body, attachments)
+    send_email(email_subject, email_body, email_recipient, attachments)
